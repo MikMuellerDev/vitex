@@ -52,39 +52,37 @@ impl Display for ValidateError {
 
 pub fn validate_templates(
     templates: &Vec<Template>,
-    base_path: &Path,
+    templates_path: &Path,
 ) -> Result<(), ValidateError> {
     for template in templates {
         if template.git.repository.is_empty() {
             continue;
         }
         // Validate the current template
-        template.validate(base_path)?;
+        template.validate(&templates_path.join(&template.id))?;
     }
     Ok(())
 }
 
 impl Template {
-    pub fn validate(&self, base_path: &Path) -> Result<(), ValidateError> {
-        let template_path = base_path.join("templates").join(".cloned").join(&self.id);
-        let path_with_prefix = template_path.join(&self.git.path_prefix);
+    pub fn validate(&self, template_path: &Path) -> Result<(), ValidateError> {
         // Test if the template exists
         if !template_path.exists() {
             return Err(ValidateError::MissingTemplate(self.id.clone()));
         };
         // Test if the path prefix is valid
-        if !path_with_prefix.exists() {
+        if !template_path.exists() {
             return Err(ValidateError::PathPrefixError {
                 id: self.id.clone(),
-                full_path: path_with_prefix
+                full_path: template_path
                     .to_str()
                     .expect("Path should be a valid String")
                     .to_string(),
             });
         }
         // Test if the template contains a `preable/config.tex` or `main.tex`
-        let config_tex_path = path_with_prefix.join("preamble").join("config.tex");
-        let main_tex_path = path_with_prefix.join("main.tex");
+        let config_tex_path = template_path.join("preamble").join("config.tex");
+        let main_tex_path = template_path.join("main.tex");
 
         if !config_tex_path.exists() && !main_tex_path.exists() {
             return Err(ValidateError::MissingConfigAndMainTex {

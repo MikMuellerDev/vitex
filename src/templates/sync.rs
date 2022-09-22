@@ -44,17 +44,15 @@ impl From<ValidateError> for SyncError {
     }
 }
 
-pub fn sync_git(templates: &Vec<Template>, base_path: &Path) -> Result<(), SyncError> {
+pub fn sync_git(templates: &Vec<Template>, cloned_path: &Path) -> Result<(), SyncError> {
     let git_templates: Vec<&Template> = templates
         .iter()
         .filter(|template| !template.git.repository.is_empty())
         .collect();
-
+    // Iterate over the git templates
     for template in &git_templates {
-        let repo_path = base_path
-            .join("templates")
-            .join(".cloned")
-            .join(&template.id);
+        // The path were the repository is located
+        let repo_path = cloned_path.join(&template.id);
         if !repo_path.exists() {
             debug!(
                 "Template `{}` does not exist: cloning from `{}`...",
@@ -97,7 +95,7 @@ pub fn sync_git(templates: &Vec<Template>, base_path: &Path) -> Result<(), SyncE
         }
     }
     debug!("Validating templates...");
-    validate_templates(&templates, base_path)?;
+    validate_templates(&templates, &cloned_path)?;
     info!(
         "Updated and scanned {} template(s). No issues detected.",
         &git_templates.len()

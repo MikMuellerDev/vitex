@@ -4,7 +4,7 @@ use log::warn;
 
 use crate::{
     config::Template,
-    templates::{ValidateError, REPLACE_KEYS},
+    templates::{TemplatePaths, ValidateError, REPLACE_KEYS},
 };
 
 pub enum Error {
@@ -48,7 +48,7 @@ pub fn create(
     title: &str,
     author: &str,
     subtitle: Option<&str>,
-    base_path: &Path,
+    template_paths: &TemplatePaths,
     destination: &Path,
 ) -> Result<(), Error> {
     // Check if there are templates
@@ -72,15 +72,15 @@ pub fn create(
         ));
     }
     // Validate the template in order to sort out some errors
-    template.validate(base_path)?;
     let template_path = match template.git.repository.is_empty() {
-        true => base_path.join("templates").join("local").join(&template.id),
-        false => base_path
-            .join("templates")
-            .join(".cloned")
+        true => template_paths.custom.join(&template.id),
+        false => template_paths
+            .cloned
             .join(&template.id)
             .join(&template.git.path_prefix),
     };
+    // Validate the template
+    template.validate(&template_path)?;
     // Copy the entire project to the destination
     if let Err(err) = copy_dir_all(&template_path, &destination) {
         return Err(Error::IoWrite {

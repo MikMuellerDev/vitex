@@ -19,10 +19,10 @@ pub fn file_path() -> Option<String> {
     }
 }
 
-pub fn read_config(base_path: &Path) -> Result<Config> {
-    let config_path = base_path.join("config.toml");
+pub fn read_config(config_path: &Path, custom_templates_path: &Path) -> Result<Config> {
     match config_path.exists() {
-        true => Ok(toml::from_str::<Config>(&fs::read_to_string(config_path)?)?.validate()?),
+        true => Ok(toml::from_str::<Config>(&fs::read_to_string(config_path)?)?
+            .validate(custom_templates_path)?),
         false => {
             println!("");
             fs::create_dir_all(

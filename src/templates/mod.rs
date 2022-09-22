@@ -4,23 +4,54 @@ mod validate;
 pub use sync::{purge_cloned, sync_git};
 pub use validate::{validate_templates, ValidateError, REPLACE_KEYS};
 
-use std::{fs, io, path::Path};
+use std::{
+    env, fs,
+    io::{self, ErrorKind},
+    path::{Path, PathBuf},
+};
 
 use crate::config::Template;
 
-pub fn create_templates_directory(base_path: &Path) -> Result<(), io::Error> {
-    let local_templates_path = base_path.join("templates").join("local");
-    if !local_templates_path.exists() {
-        fs::create_dir_all(local_templates_path)?
+pub struct TemplatePaths {
+    pub custom: PathBuf,
+    pub cloned: PathBuf,
+}
+
+pub fn create_templates_directory(custom: &PathBuf, cloned: &PathBuf) -> io::Result<()> {
+    // Custom tempplates
+    if !custom.exists() {
+        fs::create_dir_all(custom)?
     }
-    let cloned_templates_path = base_path.join("templates").join(".cloned");
-    if !cloned_templates_path.exists() {
-        fs::create_dir_all(cloned_templates_path)?
+    if !cloned.exists() {
+        fs::create_dir_all(cloned)?
     }
     Ok(())
 }
 
-pub fn list(templates: &Vec<Template>) {
+pub fn template_paths(base_path: &Path) -> io::Result<TemplatePaths> {
+    // Custom templates
+    let custom_templates_path = base_path.join("custom_templates");
+    // Cloned templates
+    let cloned_templates_path = match env::var("HOME") {
+        Ok(home) => Path::new(home.as_str())
+            .join(".local")
+            .join("share")
+            .join("vitex")
+            .join("clone"),
+        Err(_) => {
+            return Err(io::Error::new(
+                ErrorKind::NotFound,
+                "$HOME environent variable undefied: do you have a home?",
+            ))
+        }
+    };
+    Ok(TemplatePaths {
+        custom: custom_templates_path,
+        cloned: cloned_templates_path,
+    })
+}
+
+pub fn list_templates(templates: &Vec<Template>) {
     println!(
         "=== Templates ===\n{}",
         templates
