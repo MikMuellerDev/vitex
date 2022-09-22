@@ -78,14 +78,13 @@ fn create_helper(
             io_error: err,
         });
     }
-    println!("aa");
     // Write the replaced config.tex to the destination
     if let Err(err) = fs::write(
-        destination.join(title).join("preamble"),
+        destination.join(title).join("preamble").join("config.tex"),
         // Replace all keys in the config file
         raw_config_tex
-            .replace(REPLACE_KEYS[0], title)
             .replace(REPLACE_KEYS[1], subtitle)
+            .replace(REPLACE_KEYS[0], title)
             .replace(REPLACE_KEYS[2], author),
     ) {
         return Err(Error::IoWrite {
