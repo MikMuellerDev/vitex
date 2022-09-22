@@ -29,7 +29,7 @@ impl Display for Error {
                 Self::Validate(err) => format!("Cannot use invalid project: {err}"),
                 Self::UnknownTemplate(id) => format!("Template `{id}` is invalid"),
                 Self::NoTemplates => "There are currently 0 templates.\nAt least 1 template is required to use this tool".to_string(),
-                Self::DirExists(path) => format!("Cannot create project at `{path}`: directory already exists")
+                Self::DirExists(path) => format!("Will not create project directory at `{path}`: directory already exists")
             }
         )
     }
