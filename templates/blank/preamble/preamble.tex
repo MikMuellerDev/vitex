@@ -1,0 +1,38 @@
+\usepackage{babel}
+
+% --- Document Geometry ---
+\usepackage[a4paper,left=2cm,right=2cm,top=2cm,bottom=2.5cm]{geometry}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+% Remove Indent and add vspace to paragraphs
+\parindent0pt
+\setlength{\parskip}{7pt}
+
+% Uncomment if enumerate should use a) b) c) ...
+% \renewcommand{\labelenumi}{\alph{enumi})}
+
+% -- Figure-related ---
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{sidecap}
+\usepackage{amssymb}
+
+% --- Fonts and formatting ---
+\usepackage[no-math]{fontspec}
+\usepackage[autostyle]{csquotes}
+\setmainfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}
+
+% --- Itemize ---
+\renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemiii}{$\vcenter{\hbox{\rule{.5ex}{.5ex}}}$}
+\renewcommand{\labelitemiv}{$\vcenter{\hbox{\rule{.5ex}{.5ex}}}$}
+
+%  --- Tables ---
+\usepackage{tabularx}
+% Specify TabularX custom column types
+\newcolumntype{L}{X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
+% Arraystretch so that tables have padding
+\renewcommand{\arraystretch}{1.5}
