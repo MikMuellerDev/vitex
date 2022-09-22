@@ -18,6 +18,10 @@ pub struct Args {
 pub enum Command {
     /// Outputs the location of the program's configuration file
     Config,
+    /// Templates subcommands
+    #[clap(subcommand)]
+    Templates(TemplateCommand),
+    /// Creates a new LaTex project
     New {
         /// The project's title
         title: String,
@@ -25,4 +29,12 @@ pub enum Command {
         #[clap(short, long, value_parser)]
         template: Option<String>,
     },
+}
+
+#[derive(Subcommand)]
+pub enum TemplateCommand {
+    /// Downloads and syncs the specified templates
+    Sync,
+    /// Purges all cloned templates (does not affect local templates)
+    Purge,
 }

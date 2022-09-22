@@ -1,9 +1,11 @@
 use std::{path::Path, process};
 
-use clap::Parser;
+use clap::{command, Parser};
 use cli::{Args, Command};
 use log::{error, Level};
 use loggerv::Logger;
+
+use crate::cli::TemplateCommand;
 
 mod cli;
 mod config;
@@ -48,14 +50,24 @@ fn main() {
 
     println!(
         "Templates: {}",
-        conf.templates
-            .into_iter()
-            .map(|template| template.id)
+        &conf
+            .templates
+            .iter()
+            .map(|template| template.id.clone())
             .collect::<Vec<String>>()
             .join("| ")
     );
 
     match args.command {
+        Command::Templates(command) => match command {
+            TemplateCommand::Sync => {
+                templates::sync_templates(&conf.templates, base_path).unwrap_or_else(|err| {
+                    error!("Could not sync templates: {err}");
+                    process::exit(1);
+                })
+            },
+            _ => todo!(),
+        },
         Command::Config => println!(
             "Configuration file is located at: `{}`",
             base_path
