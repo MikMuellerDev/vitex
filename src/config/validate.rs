@@ -35,10 +35,10 @@ impl Config {
                 return Err(ValidateError::DuplicateID(template.id.clone()));
             }
             ids.push(&template.id);
-            if !template.local_path.is_empty() && !template.git_repository.is_empty() {
+            if !template.local_path.is_empty() && !template.git.repository.is_empty() {
                 return Err(ValidateError::GitAndPathDefined(template.id.clone()));
             }
-            if template.local_path.is_empty() && template.git_repository.is_empty() {
+            if template.local_path.is_empty() && template.git.repository.is_empty() {
                 return Err(ValidateError::NoSources(template.id.clone()));
             }
             if !template.local_path.is_empty() && !Path::new(&template.local_path).exists() {

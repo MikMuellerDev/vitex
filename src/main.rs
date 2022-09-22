@@ -1,15 +1,17 @@
 use std::{path::Path, process};
 
-use clap::{command, Parser};
+use clap::Parser;
 use cli::{Args, Command};
-use log::{error, Level};
+use log::{error, info, Level};
 use loggerv::Logger;
 
 use crate::cli::TemplateCommand;
+use log::debug;
 
 mod cli;
 mod config;
 mod new;
+mod project;
 mod templates;
 
 fn main() {
@@ -48,25 +50,30 @@ fn main() {
         )
     });
 
-    println!(
-        "Templates: {}",
-        &conf
-            .templates
-            .iter()
-            .map(|template| template.id.clone())
-            .collect::<Vec<String>>()
-            .join("| ")
-    );
-
     match args.command {
         Command::Templates(command) => match command {
             TemplateCommand::Sync => {
-                templates::sync_templates(&conf.templates, base_path).unwrap_or_else(|err| {
+                debug!("Syncing {} templates...", conf.templates.len());
+                templates::sync_git(&conf.templates, base_path).unwrap_or_else(|err| {
                     error!("Could not sync templates: {err}");
                     process::exit(1);
                 })
-            },
-            _ => todo!(),
+            }
+            TemplateCommand::Validate => {
+                templates::validate_templates(&conf.templates, base_path).unwrap_or_else(|err| {
+                    error!("Validation detected an issue:\n{err}");
+                    process::exit(1);
+                });
+                info!(
+                    "Scanned {} template(s). No issues detected.",
+                    conf.templates.len()
+                );
+            }
+            TemplateCommand::List => templates::list(&conf.templates),
+            TemplateCommand::Purge => templates::purge_cloned(base_path).unwrap_or_else(|err| {
+                error!("Could not purge cloned templates: {err}");
+                process::exit(1);
+            }),
         },
         Command::Config => println!(
             "Configuration file is located at: `{}`",

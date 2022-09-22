@@ -35,6 +35,10 @@ pub enum Command {
 pub enum TemplateCommand {
     /// Downloads and syncs the specified templates
     Sync,
+    /// Validates the local templates
+    Validate,
+    /// Lists the set-up templates
+    List,
     /// Purges all cloned templates (does not affect local templates)
     Purge,
 }
