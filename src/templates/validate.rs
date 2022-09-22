@@ -5,7 +5,7 @@ use crate::config::Template;
 pub const REPLACE_KEYS: [&'static str; 3] = [
     "VITEX_TITLE_PLACEHOLDER",
     "VITEX_SUBTITLE_PLACEHOLDER",
-    "VITEX_NAME_PLACEHOLDER",
+    "VITEX_AUTHOR_PLACEHOLDER",
 ];
 
 pub enum ValidateError {
