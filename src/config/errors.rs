@@ -1,4 +1,4 @@
-use std::{io, fmt::Display};
+use std::{fmt::Display, io};
 
 use super::validate::ValidateError;
 
@@ -7,7 +7,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     IO(io::Error),
     TomlDecode(toml::de::Error),
-    Validate(ValidateError)
+    Validate(ValidateError),
 }
 
 impl Display for Error {

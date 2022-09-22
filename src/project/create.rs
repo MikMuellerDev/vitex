@@ -1,5 +1,7 @@
 use std::{fmt::Display, fs, io, path::Path};
 
+use log::warn;
+
 use crate::{
     config::Template,
     templates::{ValidateError, REPLACE_KEYS},
@@ -11,6 +13,7 @@ pub enum Error {
     Validate(ValidateError),
     IORead { path: String, io_error: io::Error },
     IoWrite { path: String, io_error: io::Error },
+    DirExists(String),
 }
 
 impl Display for Error {
@@ -26,6 +29,7 @@ impl Display for Error {
                 Self::Validate(err) => format!("Cannot use invalid project: {err}"),
                 Self::UnknownTemplate(id) => format!("Template `{id}` is invalid"),
                 Self::NoTemplates => "There are currently 0 templates.\nAt least 1 template is required to use this tool".to_string(),
+                Self::DirExists(path) => format!("Cannot create project at `{path}`: directory already exists")
             }
         )
     }
@@ -37,67 +41,7 @@ impl From<ValidateError> for Error {
     }
 }
 
-fn create_helper(
-    template: &Template,
-    author: &str,
-    title: &str,
-    subtitle: &str,
-    base_path: &Path,
-    destination: &Path,
-) -> Result<(), Error> {
-    let template_path = match template.git.repository.is_empty() {
-        true => base_path.join("templates").join("local").join(&template.id),
-        false => base_path
-            .join("templates")
-            .join(".cloned")
-            .join(&template.id)
-            .join(&template.git.path_prefix),
-    };
-    let config_tex_path = template_path.join("preamble").join("config.tex");
-
-    // Read the raw config.tex file
-    let raw_config_tex = match fs::read_to_string(&config_tex_path) {
-        Ok(file) => file,
-        Err(err) => {
-            return Err(Error::IORead {
-                path: config_tex_path
-                    .to_str()
-                    .expect("Path should be a valid String")
-                    .to_string(),
-                io_error: err,
-            })
-        }
-    };
-    // Copy the entire project to the destination
-    if let Err(err) = copy_dir_all(template_path, destination.join(title)) {
-        return Err(Error::IoWrite {
-            path: destination
-                .to_str()
-                .expect("Path should be a String")
-                .to_string(),
-            io_error: err,
-        });
-    }
-    // Write the replaced config.tex to the destination
-    if let Err(err) = fs::write(
-        destination.join(title).join("preamble").join("config.tex"),
-        // Replace all keys in the config file
-        raw_config_tex
-            .replace(REPLACE_KEYS[1], subtitle)
-            .replace(REPLACE_KEYS[0], title)
-            .replace(REPLACE_KEYS[2], author),
-    ) {
-        return Err(Error::IoWrite {
-            path: destination
-                .to_str()
-                .expect("Path should be a String")
-                .to_string(),
-            io_error: err,
-        });
-    };
-    Ok(())
-}
-
+/// Creates a new project
 pub fn create(
     templates: &Vec<Template>,
     template_id: Option<&str>,
@@ -107,28 +51,111 @@ pub fn create(
     base_path: &Path,
     destination: &Path,
 ) -> Result<(), Error> {
+    // Check if there are templates
     if templates.len() == 0 {
         return Err(Error::NoTemplates);
     }
+    // Find the correct template
     let template_id = template_id.unwrap_or_else(|| &templates[0].id);
-
     let template = match templates.iter().find(|template| template.id == template_id) {
         Some(found) => found,
         None => return Err(Error::UnknownTemplate(template_id.to_string())),
     };
-    // Validate the template to sort out some errors
+    // Check if the path already exists
+    let destination = destination.join(title.replace(' ', "_").replace("/", "\\"));
+    if destination.exists() {
+        return Err(Error::DirExists(
+            destination
+                .to_str()
+                .expect("Path should be a String")
+                .to_string(),
+        ));
+    }
+    // Validate the template in order to sort out some errors
     template.validate(base_path)?;
-    create_helper(
-        template,
-        author,
-        title,
-        subtitle.unwrap_or_else(|| title),
-        base_path,
-        destination,
-    )?;
+    let template_path = match template.git.repository.is_empty() {
+        true => base_path.join("templates").join("local").join(&template.id),
+        false => base_path
+            .join("templates")
+            .join(".cloned")
+            .join(&template.id)
+            .join(&template.git.path_prefix),
+    };
+    // Copy the entire project to the destination
+    if let Err(err) = copy_dir_all(&template_path, &destination) {
+        return Err(Error::IoWrite {
+            path: destination
+                .to_str()
+                .expect("Path should be a String")
+                .to_string(),
+            io_error: err,
+        });
+    }
+    // Replace all the placeholders
+    let config_tex_path = destination.join("preamble").join("config.tex");
+    let main_tex_path = destination.join("main.tex");
+    if config_tex_path.exists() {
+        replace_placeholders_in_file(
+            &config_tex_path,
+            title,
+            subtitle.unwrap_or_else(|| title),
+            author,
+        )?;
+    } else if main_tex_path.exists() {
+        replace_placeholders_in_file(
+            &main_tex_path,
+            title,
+            subtitle.unwrap_or_else(|| title),
+            author,
+        )?;
+    } else {
+        warn!("Project contains no `main.tex` or `preamble/config.tex`")
+    }
     Ok(())
 }
 
+/// Replaces the title, subtitle and author placeholders in a file
+fn replace_placeholders_in_file(
+    file_path: &Path,
+    title: &str,
+    subtitle: &str,
+    author: &str,
+) -> Result<(), Error> {
+    // Read the raw file contents
+    let raw_config_tex = match fs::read_to_string(file_path) {
+        Ok(file) => file,
+        Err(err) => {
+            return Err(Error::IORead {
+                path: file_path
+                    .to_str()
+                    .expect("Path should be a valid String")
+                    .to_string(),
+                io_error: err,
+            })
+        }
+    };
+    // Write the contents to the file whilst replacing them
+    if let Err(err) = fs::write(
+        file_path,
+        // Replace all keys in the file
+        raw_config_tex
+            .replace(REPLACE_KEYS[1], subtitle)
+            .replace(REPLACE_KEYS[0], title)
+            .replace(REPLACE_KEYS[2], author),
+    ) {
+        return Err(Error::IoWrite {
+            path: file_path
+                .to_str()
+                .expect("Path should be a String")
+                .to_string(),
+            io_error: err,
+        });
+    };
+    Ok(())
+}
+
+/// Like `cp -r` on Unix platforms:
+/// Recursively copies a directory and all its contents
 fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
     fs::create_dir_all(&dst)?;
     for entry in fs::read_dir(src)? {
