@@ -103,8 +103,8 @@ pub fn sync_git(templates: &Vec<Template>, cloned_path: &Path) -> Result<(), Syn
     Ok(())
 }
 
-pub fn purge_cloned(base_path: &Path) -> io::Result<()> {
-    fs::remove_dir_all(base_path.join("templates").join(".cloned"))?;
+pub fn purge_cloned(cloned_path: &Path) -> io::Result<()> {
+    fs::remove_dir_all(cloned_path)?;
     info!("Successfully deleted cloned templates");
     Ok(())
 }

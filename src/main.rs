@@ -54,12 +54,11 @@ fn main() {
             )
         });
     // Read or create the config file
-    let conf = config::read_config(&base_path.join("config.toml"), &template_paths.custom).unwrap_or_else(
-        |err| {
+    let conf = config::read_config(&base_path.join("config.toml"), &template_paths.custom)
+        .unwrap_or_else(|err| {
             error!("Could not read or create config file: {err}");
             process::exit(1);
-        },
-    );
+        });
 
     match args.command {
         Command::Templates(command) => match command {
@@ -83,10 +82,11 @@ fn main() {
                 );
             }
             TemplateCommand::List => templates::list_templates(&conf.templates),
-            TemplateCommand::Purge => templates::purge_cloned(base_path).unwrap_or_else(|err| {
-                error!("Could not purge cloned templates: {err}");
-                process::exit(1);
-            }),
+            TemplateCommand::Purge => templates::purge_cloned(&template_paths.cloned)
+                .unwrap_or_else(|err| {
+                    error!("Could not purge cloned templates: {err}");
+                    process::exit(1);
+                }),
         },
         Command::Project(command) => match command {
             ProjectCommand::New {

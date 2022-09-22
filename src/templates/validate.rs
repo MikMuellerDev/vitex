@@ -42,7 +42,7 @@ impl Display for ValidateError {
                 Self::PathPrefixError { id, full_path } =>
                     format!("Invalid path-prefix for template `{id}`:\nPath prefix leads to nowhere (full path: `{full_path}`)"),
                     Self::MissingConfigAndMainTex { id, full_path } =>
-                    format!("Template `{id}` is missing the file `preable/config.tex` and `main.tex` (full path `{full_path}`)"),
+                    format!("Template `{id}` is missing the file `preable/config.tex` or `main.tex` (full path `{full_path}`)"),
                 Self::IORead { id, path, io_error } => format!("Could not read file at `{path}` whilst validating template `{id}`:\n{io_error}"),
                 Self::MissingTemplate(id) => format!("Template `{id}` is set-up but not yet installed:\nHINT: run `vitex templates sync` to address this issue")
             }
@@ -59,7 +59,11 @@ pub fn validate_templates(
             continue;
         }
         // Validate the current template
-        template.validate(&templates_path.join(&template.id))?;
+        template.validate(
+            &templates_path
+                .join(&template.id)
+                .join(&template.git.path_prefix),
+        )?;
     }
     Ok(())
 }
