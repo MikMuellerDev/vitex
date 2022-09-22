@@ -44,13 +44,13 @@ pub enum ProjectCommand {
     New {
         /// The project's title
         title: String,
-        /// The project subtitle
+        /// The project's subtitle
         #[clap(short, long, value_parser)]
         subtitle: Option<String>,
-        /// The project template
+        /// The project's template
         #[clap(short, long, value_parser)]
         template: Option<String>,
-        /// The project template
+        /// The project's author(s)
         #[clap(short, long, value_parser)]
         author: Option<String>,
     },
