@@ -2,7 +2,7 @@ mod sync;
 mod validate;
 
 pub use sync::{purge_cloned, sync_git};
-pub use validate::validate_templates;
+pub use validate::{validate_templates, ValidateError, REPLACE_KEYS};
 
 use std::{fs, io, path::Path};
 

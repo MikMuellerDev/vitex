@@ -1,7 +1,7 @@
 use std::{path::Path, process};
 
 use clap::Parser;
-use cli::{Args, Command};
+use cli::{Args, Command, ProjectCommand};
 use log::{error, info, Level};
 use loggerv::Logger;
 
@@ -10,7 +10,6 @@ use log::debug;
 
 mod cli;
 mod config;
-mod new;
 mod project;
 mod templates;
 
@@ -75,6 +74,26 @@ fn main() {
                 process::exit(1);
             }),
         },
+        Command::Project(command) => match command {
+            ProjectCommand::New {
+                title,
+                subtitle,
+                template,
+                author,
+            } => project::create(
+                &conf.templates,
+                template.as_deref(),
+                &title,
+                &author.unwrap_or_else(|| conf.author_name),
+                subtitle.as_deref(),
+                base_path,
+                Path::new(""),
+            )
+            .unwrap_or_else(|err| {
+                eprintln!("Could not create new project: {err}");
+                process::exit(1);
+            }),
+        },
         Command::Config => println!(
             "Configuration file is located at: `{}`",
             base_path
@@ -82,9 +101,5 @@ fn main() {
                 .to_str()
                 .expect("Path is expected to be a valid string")
         ),
-        Command::New { title, template } => new::new(&title, template).unwrap_or_else(|err| {
-            eprintln!("Could not create new project: {err}");
-            process::exit(1);
-        }),
     }
 }

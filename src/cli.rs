@@ -21,14 +21,9 @@ pub enum Command {
     /// Templates subcommands
     #[clap(subcommand)]
     Templates(TemplateCommand),
-    /// Creates a new LaTex project
-    New {
-        /// The project's title
-        title: String,
-        /// The project template
-        #[clap(short, long, value_parser)]
-        template: Option<String>,
-    },
+    /// Project subcommands
+    #[clap(subcommand)]
+    Project(ProjectCommand),
 }
 
 #[derive(Subcommand)]
@@ -41,4 +36,22 @@ pub enum TemplateCommand {
     List,
     /// Purges all cloned templates (does not affect local templates)
     Purge,
+}
+
+#[derive(Subcommand)]
+pub enum ProjectCommand {
+    /// Creates a new LaTex project
+    New {
+        /// The project's title
+        title: String,
+        /// The project subtitle
+        #[clap(short, long, value_parser)]
+        subtitle: Option<String>,
+        /// The project template
+        #[clap(short, long, value_parser)]
+        template: Option<String>,
+        /// The project template
+        #[clap(short, long, value_parser)]
+        author: Option<String>,
+    },
 }

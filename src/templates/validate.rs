@@ -2,6 +2,12 @@ use std::{fmt::Display, fs, io, path::Path};
 
 use crate::config::Template;
 
+pub const REPLACE_KEYS: [&'static str; 3] = [
+    "TITLE-PLACEHOLDER",
+    "SUBTITLE-PLACEHOLDER",
+    "NAME-PLACEHOLDER",
+];
+
 pub enum ValidateError {
     ReplaceError {
         id: String,
@@ -50,20 +56,25 @@ pub fn validate_templates(
         if template.git.repository.is_empty() {
             continue;
         }
-        let template_path = base_path
-            .join("templates")
-            .join(".cloned")
-            .join(&template.id);
-        let path_with_prefix = template_path.join(&template.git.path_prefix);
+        // Validate the current template
+        template.validate(base_path)?;
+    }
+    Ok(())
+}
+
+impl Template {
+    pub fn validate(&self, base_path: &Path) -> Result<(), ValidateError> {
+        let template_path = base_path.join("templates").join(".cloned").join(&self.id);
+        let path_with_prefix = template_path.join(&self.git.path_prefix);
         let config_tex_path = path_with_prefix.join("preamble").join("config.tex");
         // Test if the template exists
         if !template_path.exists() {
-            return Err(ValidateError::MissingTemplate(template.id.clone()));
+            return Err(ValidateError::MissingTemplate(self.id.clone()));
         };
         // Test if the path prefix is valid
         if !path_with_prefix.exists() {
             return Err(ValidateError::PathPrefixError {
-                id: template.id.clone(),
+                id: self.id.clone(),
                 full_path: path_with_prefix
                     .to_str()
                     .expect("Path should be a valid String")
@@ -73,7 +84,7 @@ pub fn validate_templates(
         // Test if the template contains a `preable/config.tex`
         if !config_tex_path.exists() {
             return Err(ValidateError::MissingConfigTex {
-                id: template.id.clone(),
+                id: self.id.clone(),
                 full_path: config_tex_path
                     .to_str()
                     .expect("Path should be a valid String")
@@ -85,7 +96,7 @@ pub fn validate_templates(
             Ok(file) => file,
             Err(err) => {
                 return Err(ValidateError::IORead {
-                    id: template.id.clone(),
+                    id: self.id.clone(),
                     path: config_tex_path
                         .to_str()
                         .expect("Path should be a valid String")
@@ -95,19 +106,15 @@ pub fn validate_templates(
             }
         };
         // Check if the file contains various keys
-        for replace_key in vec![
-            "TITLE-PLACEHOLDER",
-            "SUBTITLE-PLACEHOLDER",
-            "NAME-PLACEHOLDER",
-        ] {
+        for replace_key in REPLACE_KEYS {
             // Test if the current replace key can be found
             if !&config_tex.contains(replace_key) {
                 return Err(ValidateError::ReplaceError {
-                    id: template.id.clone(),
+                    id: self.id.clone(),
                     details: format!("Could not find / replace key `{replace_key}`"),
                 });
             }
         }
+        Ok(())
     }
-    Ok(())
 }

@@ -8,12 +8,14 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
+    pub author_name: String,
     pub templates: Vec<Template>,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
+            author_name: "John Doe".to_string(),
             templates: vec![Template::default()],
         }
     }
@@ -38,8 +40,8 @@ impl Default for Template {
             id: "default".to_string(),
             local_path: "".to_string(),
             git: TemplateGitConfig {
-                repository: "git@github.com:foo/bar".to_string(),
-                path_prefix: "src/normal-template".to_string(),
+                repository: "https://github.com/MikMuellerDev/vitex".to_string(),
+                path_prefix: "templates/normal".to_string(),
             },
         }
     }
