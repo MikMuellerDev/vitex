@@ -1,13 +1,14 @@
-use std::process;
+use std::{path::Path, process};
 
 use clap::Parser;
 use cli::{Args, Command};
-use log::{Level, error};
+use log::{error, Level};
 use loggerv::Logger;
 
 mod cli;
 mod config;
 mod new;
+mod templates;
 
 fn main() {
     let args = Args::parse();
@@ -24,16 +25,47 @@ fn main() {
         .init()
         .unwrap();
 
-    let config_path = config::file_path().unwrap_or_else(|| {
-        error!("");
+    let base_path = config::file_path().unwrap_or_else(|| {
+        error!("Could not determine a config-file path: do you have a home-directory?");
+        process::exit(1);
+    });
+    let base_path = Path::new(&base_path);
+
+    let conf = config::read_config(&base_path).unwrap_or_else(|err| {
+        error!("Could not read or create config file: {err}");
         process::exit(1);
     });
 
+    templates::create_templates_directory(&base_path).unwrap_or_else(|err| {
+        error!(
+            "Could not create templates directory (at `{}`): {err}",
+            base_path
+                .join("templates")
+                .to_str()
+                .expect("Path is expected to be a valid string")
+        )
+    });
+
+    println!(
+        "Templates: {}",
+        conf.templates
+            .into_iter()
+            .map(|template| template.id)
+            .collect::<Vec<String>>()
+            .join("| ")
+    );
+
     match args.command {
-        Command::New { title, template } => new::new(&title, template),
+        Command::Config => println!(
+            "Configuration file is located at: `{}`",
+            base_path
+                .join("config.toml")
+                .to_str()
+                .expect("Path is expected to be a valid string")
+        ),
+        Command::New { title, template } => new::new(&title, template).unwrap_or_else(|err| {
+            eprintln!("Could not create new project: {err}");
+            process::exit(1);
+        }),
     }
-    .unwrap_or_else(|err| {
-        eprintln!("An error occured: {err}");
-        process::exit(1);
-    })
 }

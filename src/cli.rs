@@ -16,6 +16,8 @@ pub struct Args {
 
 #[derive(Subcommand)]
 pub enum Command {
+    /// Outputs the location of the program's configuration file
+    Config,
     New {
         /// The project's title
         title: String,
