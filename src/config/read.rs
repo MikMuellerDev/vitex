@@ -24,7 +24,6 @@ pub fn read_config(config_path: &Path, custom_templates_path: &Path) -> Result<C
         true => Ok(toml::from_str::<Config>(&fs::read_to_string(config_path)?)?
             .validate(custom_templates_path)?),
         false => {
-            println!("");
             fs::create_dir_all(
                 config_path
                     .parent()

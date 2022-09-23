@@ -51,7 +51,7 @@ pub fn template_paths(base_path: &Path) -> io::Result<TemplatePaths> {
     })
 }
 
-pub fn list_templates(templates: &Vec<Template>) {
+pub fn list_templates(templates: &[Template]) {
     println!(
         "=== Templates ===\n{}",
         templates

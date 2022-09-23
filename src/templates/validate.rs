@@ -4,7 +4,7 @@ use log::warn;
 
 use crate::config::Template;
 
-pub const REPLACE_KEYS: [&'static str; 3] = [
+pub const REPLACE_KEYS: [&str; 3] = [
     "VITEX_TITLE_PLACEHOLDER",
     "VITEX_SUBTITLE_PLACEHOLDER",
     "VITEX_AUTHOR_PLACEHOLDER",

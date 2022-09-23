@@ -52,7 +52,7 @@ pub fn create(
     destination: &Path,
 ) -> Result<(), Error> {
     // Check if there are templates
-    if templates.len() == 0 {
+    if templates.is_empty() {
         return Err(Error::NoTemplates);
     }
     // Find the correct template
@@ -62,7 +62,7 @@ pub fn create(
         None => return Err(Error::UnknownTemplate(template_id.to_string())),
     };
     // Check if the path already exists
-    let destination = destination.join(title.replace(' ', "_").replace("/", "\\"));
+    let destination = destination.join(title.replace(' ', "_").replace('/', "\\"));
     if destination.exists() {
         return Err(Error::DirExists(
             destination
@@ -95,19 +95,9 @@ pub fn create(
     let config_tex_path = destination.join("preamble").join("config.tex");
     let main_tex_path = destination.join("main.tex");
     if config_tex_path.exists() {
-        replace_placeholders_in_file(
-            &config_tex_path,
-            title,
-            subtitle.unwrap_or_else(|| title),
-            author,
-        )?;
+        replace_placeholders_in_file(&config_tex_path, title, subtitle.unwrap_or(title), author)?;
     } else if main_tex_path.exists() {
-        replace_placeholders_in_file(
-            &main_tex_path,
-            title,
-            subtitle.unwrap_or_else(|| title),
-            author,
-        )?;
+        replace_placeholders_in_file(&main_tex_path, title, subtitle.unwrap_or(title), author)?;
     } else {
         warn!("Project contains no `main.tex` or `preamble/config.tex`")
     }

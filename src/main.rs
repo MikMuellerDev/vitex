@@ -98,7 +98,7 @@ fn main() {
                 &conf.templates,
                 template.as_deref(),
                 &title,
-                &author.unwrap_or_else(|| conf.author_name),
+                &author.unwrap_or(conf.author_name),
                 subtitle.as_deref(),
                 &template_paths,
                 Path::new(""),

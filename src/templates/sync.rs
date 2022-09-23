@@ -95,7 +95,7 @@ pub fn sync_git(templates: &Vec<Template>, cloned_path: &Path) -> Result<(), Syn
         }
     }
     debug!("Validating templates...");
-    validate_templates(&templates, &cloned_path)?;
+    validate_templates(templates, cloned_path)?;
     info!(
         "Updated and scanned {} template(s). No issues detected.",
         &git_templates.len()
