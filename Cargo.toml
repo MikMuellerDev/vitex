@@ -3,6 +3,11 @@ name = "vitex"
 version = "0.1.0"
 edition = "2021"
 repository = "https://github.com/MikMuellerDev/vitex"
+description = "A latex templating tool"
+license = "GPL-2.0-only"
+keywords = ["latex", "templating"]
+categories = ["command-line-utilities"]
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
