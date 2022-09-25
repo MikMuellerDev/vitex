@@ -19,24 +19,24 @@ impl Default for Config {
         Self {
             author_name: "John Doe".to_string(),
             templates: vec![
-            Template {
-                id: "normal".to_string(),
-                git: {
-                    TemplateGitConfig {
-                        repository: repository.to_string(),
-                        path_prefix: "templates/normal".to_string(),
-                    }
+                Template {
+                    id: "normal".to_string(),
+                    git: {
+                        TemplateGitConfig {
+                            repository: repository.to_string(),
+                            path_prefix: "templates/normal".to_string(),
+                        }
+                    },
                 },
-            },
-            Template {
-                id: "blank".to_string(),
-                git: {
-                    TemplateGitConfig {
-                        repository: repository.to_string(),
-                        path_prefix: "templates/blank".to_string(),
-                    }
+                Template {
+                    id: "blank".to_string(),
+                    git: {
+                        TemplateGitConfig {
+                            repository: repository.to_string(),
+                            path_prefix: "templates/blank".to_string(),
+                        }
+                    },
                 },
-            }
             ],
         }
     }
