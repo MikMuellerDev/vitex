@@ -14,9 +14,30 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
+        let repository = env!("CARGO_PKG_REPOSITORY");
+
         Self {
             author_name: "John Doe".to_string(),
-            templates: vec![Template::default()],
+            templates: vec![
+            Template {
+                id: "normal".to_string(),
+                git: {
+                    TemplateGitConfig {
+                        repository: repository.to_string(),
+                        path_prefix: "templates/normal".to_string(),
+                    }
+                },
+            },
+            Template {
+                id: "blank".to_string(),
+                git: {
+                    TemplateGitConfig {
+                        repository: repository.to_string(),
+                        path_prefix: "templates/blank".to_string(),
+                    }
+                },
+            }
+            ],
         }
     }
 }
@@ -31,16 +52,4 @@ pub struct Template {
 pub struct TemplateGitConfig {
     pub repository: String,
     pub path_prefix: String,
-}
-
-impl Default for Template {
-    fn default() -> Self {
-        Self {
-            id: "default".to_string(),
-            git: TemplateGitConfig {
-                repository: "https://github.com/MikMuellerDev/vitex".to_string(),
-                path_prefix: "templates/normal".to_string(),
-            },
-        }
-    }
 }
