@@ -1,6 +1,6 @@
 use std::{fmt::Display, fs, io, path::Path};
 
-use log::warn;
+use log::{info, warn};
 
 use crate::{
     config::Template,
@@ -101,6 +101,10 @@ pub fn create(
     } else {
         warn!("Project contains no `main.tex` or `preamble/config.tex`")
     }
+    info!(
+        "Created new {template_id} project at `./{}`",
+        destination.to_str().expect("Path should be a String")
+    );
     Ok(())
 }
 
