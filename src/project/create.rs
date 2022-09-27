@@ -80,7 +80,14 @@ pub fn create(
             .join(&template.git.path_prefix),
     };
     // Validate the template
-    template.validate(&template_path)?;
+    template.validate(
+        &template_path,
+        if template.git.repository.is_empty() {
+            None
+        } else {
+            Some(&template_paths.cloned)
+        },
+    )?;
     // Copy the entire project to the destination
     if let Err(err) = copy_dir_all(&template_path, &destination) {
         return Err(Error::IoWrite {

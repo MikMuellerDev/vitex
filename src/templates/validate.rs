@@ -1,4 +1,8 @@
-use std::{fmt::Display, fs, io, path::Path};
+use std::{
+    fmt::Display,
+    fs, io,
+    path::{Path, PathBuf},
+};
 
 use log::warn;
 
@@ -23,7 +27,8 @@ pub enum ValidateError {
         id: String,
         full_path: String,
     },
-    MissingTemplate(String),
+    NotFound(String),
+    NotCloned(String),
     IORead {
         id: String,
         path: String,
@@ -44,7 +49,8 @@ impl Display for ValidateError {
                     Self::MissingConfigAndMainTex { id, full_path } =>
                     format!("Template `{id}` is missing the file `preable/config.tex` or `main.tex` (full path `{full_path}`)"),
                 Self::IORead { id, path, io_error } => format!("Could not read file at `{path}` whilst validating template `{id}`:\n{io_error}"),
-                Self::MissingTemplate(id) => format!("Template `{id}` is set-up but not yet installed:\nHINT: run `vitex templates sync` to address this issue")
+                Self::NotFound(id) => format!("Template `{id}` is set-up but not found locally:\nHINT: check if the template is present at the correct path"),
+                Self::NotCloned(id) => format!("Template `{id}` is set-up but not yet installed:\nHINT: run `vitex templates sync` to address this issue"),
             }
         )
     }
@@ -58,31 +64,49 @@ pub fn validate_templates(
         if template.git.repository.is_empty() {
             continue;
         }
+        // Create a repository path if the template uses git
+        let repo_path = if template.git.repository.is_empty() {
+            None
+        } else {
+            Some(templates_path.join(&template.id))
+        };
         // Validate the current template
         template.validate(
             &templates_path
                 .join(&template.id)
                 .join(&template.git.path_prefix),
+            repo_path.as_ref(),
         )?;
     }
     Ok(())
 }
 
 impl Template {
-    pub fn validate(&self, template_path: &Path) -> Result<(), ValidateError> {
-        // Test if the template exists
-        if !template_path.exists() {
-            return Err(ValidateError::MissingTemplate(self.id.clone()));
-        };
-        // Test if the path prefix is valid
-        if !template_path.exists() {
-            return Err(ValidateError::PathPrefixError {
-                id: self.id.clone(),
-                full_path: template_path
-                    .to_str()
-                    .expect("Path should be a valid String")
-                    .to_string(),
-            });
+    pub fn validate(
+        &self,
+        template_path: &Path,
+        repository_path: Option<&PathBuf>,
+    ) -> Result<(), ValidateError> {
+        if let Some(repository_path) = repository_path {
+            // Test if the template is cloned
+            if !repository_path.join(&self.id).exists() {
+                return Err(ValidateError::NotCloned(self.id.clone()));
+            };
+            // Test if the path prefix is valid
+            if !template_path.exists() {
+                return Err(ValidateError::PathPrefixError {
+                    id: self.id.clone(),
+                    full_path: template_path
+                        .to_str()
+                        .expect("Path should be a valid String")
+                        .to_string(),
+                });
+            }
+        } else {
+            // Test if the template can be found locally
+            if !template_path.exists() {
+                return Err(ValidateError::NotFound(self.id.clone()));
+            };
         }
         // Test if the template contains a `preable/config.tex` or `main.tex`
         let config_tex_path = template_path.join("preamble").join("config.tex");

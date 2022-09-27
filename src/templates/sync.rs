@@ -25,7 +25,7 @@ impl Display for SyncError {
             match self {
                 SyncError::IO(err) => format!("IO error: {err}"),
                 Self::Validate(err) =>
-                    format!("post-sync template validation detected an issue: {err}"),
+                    format!("post-sync template validation detected an issue:\n{err}"),
                 Self::Git(message) => format!("Git error: {message}"),
             }
         )
