@@ -1,2 +1,3 @@
-# vitex
-A latex build and templating tool
+# Vitex
+
+A latex templating tool
