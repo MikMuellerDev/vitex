@@ -104,11 +104,11 @@ fn main() {
                 Path::new(""),
             )
             .unwrap_or_else(|err| {
-                eprintln!("Could not create new project: {err}");
+                error!("Could not create new project: {err}");
                 process::exit(1);
             }),
         },
-        Command::Config => println!(
+        Command::Config => info!(
             "Configuration file is located at: `{}`",
             base_path
                 .join("config.toml")

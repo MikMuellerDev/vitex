@@ -89,17 +89,14 @@ impl Template {
     ) -> Result<(), ValidateError> {
         if let Some(repository_path) = repository_path {
             // Test if the template is cloned
-            if !repository_path.join(&self.id).exists() {
+            if !repository_path.exists() {
                 return Err(ValidateError::NotCloned(self.id.clone()));
             };
             // Test if the path prefix is valid
-            if !template_path.exists() {
+            if !repository_path.join(&self.git.path_prefix).exists() {
                 return Err(ValidateError::PathPrefixError {
                     id: self.id.clone(),
-                    full_path: template_path
-                        .to_str()
-                        .expect("Path should be a valid String")
-                        .to_string(),
+                    full_path: template_path.to_string_lossy().to_string(),
                 });
             }
         } else {
@@ -134,7 +131,7 @@ impl Template {
 }
 
 fn validate_tex_file(id: &str, path: &Path) -> Result<(), ValidateError> {
-    let file_contents = match fs::read_to_string(&path) {
+    let file_contents = match fs::read_to_string(path) {
         Ok(file) => file,
         Err(err) => {
             return Err(ValidateError::IORead {

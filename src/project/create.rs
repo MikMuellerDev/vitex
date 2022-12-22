@@ -1,4 +1,8 @@
-use std::{fmt::Display, fs, io, path::Path};
+use std::{
+    fmt::Display,
+    fs, io,
+    path::{Path, PathBuf},
+};
 
 use log::{info, warn};
 
@@ -48,7 +52,7 @@ pub fn create(
     title: &str,
     author: &str,
     subtitle: Option<&str>,
-    template_paths: &TemplatePaths,
+    templates_path: &TemplatePaths,
     destination: &Path,
 ) -> Result<(), Error> {
     // Check if there are templates
@@ -72,22 +76,20 @@ pub fn create(
         ));
     }
     // Validate the template in order to sort out some errors
-    let template_path = match template.git.repository.is_empty() {
-        true => template_paths.custom.join(&template.id),
-        false => template_paths
-            .cloned
-            .join(&template.id)
-            .join(&template.git.path_prefix),
+    let (template_path, repo_path) = match template.git.repository.is_empty() {
+        true => (templates_path.custom.join(&template.id), None),
+        false => (
+            templates_path
+                .cloned
+                .join(&template.id)
+                .join(&template.git.path_prefix),
+            Some(templates_path.cloned.join(&template.id)),
+        ),
     };
+
     // Validate the template
-    template.validate(
-        &template_path,
-        if template.git.repository.is_empty() {
-            None
-        } else {
-            Some(&template_paths.cloned)
-        },
-    )?;
+    template.validate(&template_path, repo_path.as_ref())?;
+
     // Copy the entire project to the destination
     if let Err(err) = copy_dir_all(&template_path, &destination) {
         return Err(Error::IoWrite {
