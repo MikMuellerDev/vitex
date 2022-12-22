@@ -1,8 +1,4 @@
-use std::{
-    fmt::Display,
-    fs, io,
-    path::{Path, PathBuf},
-};
+use std::{fmt::Display, fs, io, path::Path};
 
 use log::{info, warn};
 
